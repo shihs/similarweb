@@ -14,6 +14,6 @@ This crawler shows how to crawl the data of Geography Traffic and Domain Info fr
 Run [python/similarweb.py](https://github.com/shihs/similarweb/blob/master/python/similarweb.py) to get data from SimilarWeb.
 </br>
 </br>
-Get infomation code by [python/get_code_info.py].(https://github.com/shihs/similarweb/blob/master/python/get_code_info.py)
+Get infomation code by [python/get_code_info.py](https://github.com/shihs/similarweb/blob/master/python/get_code_info.py)
 
 
