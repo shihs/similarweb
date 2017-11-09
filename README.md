@@ -6,6 +6,14 @@ It sells a software as a service product, an API product, custom reports, and pr
 This crawler shows how to crawl the data of Geography Traffic and Domain Info from SimilarWeb.
 
 
-<strong>Before you use this crawler you NEED to have a SimilarWeb account.</strong>
+*Before you use this crawler you <strong>NEED</strong> to have a SimilarWeb account.
+</br>
+</br>
+<strong>REMEMBER</strong> to replace your *email* and *password* in [python/login.py](https://github.com/shihs/similarweb/blob/master/python/login.py) 's variables.
+</br>
+Run [python/similarweb.py](https://github.com/shihs/similarweb/blob/master/python/similarweb.py) to get data from SimilarWeb.
+</br>
+</br>
+Get infomation code by [python/get_code_info.py].(https://github.com/shihs/similarweb/blob/master/python/get_code_info.py)
 
 
