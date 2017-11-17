@@ -11,6 +11,13 @@ import time
 
 
 def collect_web(file_name):
+	'''Collect websites from a file.
+	Args:
+		file_name:excel file's name, with websites at first column  
+
+	Return:
+		webs:Websites collection list 
+	'''
 	webs = []
 	with open(file_name, "r") as f:
 		reader = csv.reader(f, delimiter = ",")
@@ -21,21 +28,26 @@ def collect_web(file_name):
 	return webs
 
 def collect_country(file_name):
+	'''Collect country names and codes mapping
+	Args:
+		file_name:exel file's, with country names and codes
+
+	Return:
+		countries:Countries collection dictionary
+	'''
 	countries = {}
 	with open(file_name, "r") as f:
 		reader = csv.reader(f, delimiter = ",")
 		next(reader, None)  # ignore column name
 		for i in reader:
 			countries[i[0]] = i[2]
-	# print countries 
-
+	
 	return countries
 
 
 def similarweb_crawler(file_name):
 
 	webs = collect_web(file_name)
-
 	countries = collect_country("../code info/country_code.csv")
 
 	s = login()
@@ -50,16 +62,16 @@ def similarweb_crawler(file_name):
 		"scheme":"https"
 	}
 	
-	
+	# category traffic data
 	data_category = []
 	data_category.append(["web", "Country traffic rank", "Country code", "Country", "Traffic share", "Avg. Visit Duration", "PagePerVisit", "BounceRate", "Rank"])
-	
+	# info data
 	data_info = []
 	data_info.append(["web", "main Domain Name", "tags", "global Ranking", "category", "category Ranking", "highest Traffic Country", "highest Traffic Country Ranking"])
 	
+
 	for web in webs:
 		print web
-
 
 		# WEB info
 		url = "https://pro.similarweb.com/api/websiteanalysis/getheader?includeCrossData=true&keys=" + web + "&mainDomainOnly=true"
@@ -67,12 +79,13 @@ def similarweb_crawler(file_name):
 			res = s.get(url, headers = headers)
 		except:
 			continue
-		# print res.text.encode("utf-8")
 		
 		try:
 			js = json.loads(res.text)[web]
 		except:
 			continue
+
+		# websites info
 		highestTrafficCountry = js["highestTrafficCountry"]
 
 		if highestTrafficCountry == 0:
@@ -124,8 +137,7 @@ def similarweb_crawler(file_name):
 	with open(file_name + "_WEB Geography Traffice.csv", "wb") as f:
 		w = csv.writer(f)
 		w.writerows(data_category)
-	
-		
+
 	with open(file_name + "_WEB info.csv", "wb") as f:
 		w = csv.writer(f)
 		w.writerows(data_info)
