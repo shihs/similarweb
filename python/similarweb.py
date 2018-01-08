@@ -6,7 +6,10 @@ import requests
 import json
 import csv
 import time
-
+import datetime
+import urllib
+import os
+import calendar
 
 
 
@@ -68,6 +71,22 @@ def similarweb_crawler(file_name):
 	# info data
 	data_info = []
 	data_info.append(["web", "main Domain Name", "tags", "global Ranking", "category", "category Ranking", "highest Traffic Country", "highest Traffic Country Ranking"])
+
+	# date for url
+	date_to = datetime.datetime.now()
+	day = date_to.day
+	
+	if day < 15:
+		last_month_day = calendar.monthrange(date_to.year, date_to.month)[1]
+		date_to = date_to - datetime.timedelta(days = day+last_month_day)
+		date_from = datetime.datetime.now() - datetime.timedelta(days = 90 + day + last_month_day)
+	
+	if day > 15:
+		date_to = date_to - datetime.timedelta(days = day)
+		date_from = datetime.datetime.now() - datetime.timedelta(days = 60 + day)
+		
+	date_to = str(date_to.year) + "|" + str(date_to.month).zfill(2) + "|" + str(date_to.day).zfill(2)
+	date_from = str(date_from.year) + "|" + str(date_from.month).zfill(2) + "|" + str(date_from.day).zfill(2)
 	
 
 	for web in webs:
@@ -110,7 +129,7 @@ def similarweb_crawler(file_name):
 
 		
 		# Geography statistics
-		url = "https://pro.similarweb.com/widgetApi/WebsiteGeographyExtended/GeographyExtended/Table?country=999&from=2017%7C07%7C01&includeSubDomains=true&isWindow=false&keys=" + web + "&metric=GeographyExtended&orderBy=TotalShare+desc&timeGranularity=Monthly&to=2017%7C09%7C30"
+		url = "https://pro.similarweb.com/widgetApi/WebsiteGeographyExtended/GeographyExtended/Table?country=999&from=" + urllib.quote(date_from) + "&includeSubDomains=true&isWindow=false&keys=" + web + "&metric=GeographyExtended&orderBy=TotalShare+desc&timeGranularity=Monthly&to=" + urllib.quote(date_to)
 		res = s.get(url, headers = headers)
 
 		ratio_ranking = 1
