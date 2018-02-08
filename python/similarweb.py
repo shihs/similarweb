@@ -14,12 +14,11 @@ import calendar
 
 
 def collect_web(file_name):
-	'''Collect websites from a file.
+	'''Collect domains from file_name.
 	Args:
-		file_name:excel file's name, with websites at first column  
-
+		file_name:csv file with domain on first column.
 	Return:
-		webs:Websites collection list 
+		webs:domains list
 	'''
 	webs = []
 	with open(file_name, "r") as f:
@@ -30,31 +29,39 @@ def collect_web(file_name):
 
 	return webs
 
-def collect_country(file_name):
-	'''Collect country names and codes mapping
-	Args:
-		file_name:exel file's, with country names and codes
 
+
+def collect_country():
+	'''Collect countries and its codes from country_code.csv
 	Return:
-		countries:Countries collection dictionary
+		countries:countries dictionary with id as key, country names as value.
 	'''
 	countries = {}
+	file_name = "../code info/country_code.csv"
 	with open(file_name, "r") as f:
 		reader = csv.reader(f, delimiter = ",")
 		next(reader, None)  # ignore column name
 		for i in reader:
 			countries[i[0]] = i[2]
-	
+
 	return countries
 
 
+
 def similarweb_crawler(file_name):
+	'''Crawl domain infomatiion from similarweb.
+	Args:
+		file_name:csv file with domain on first column.
+	'''
 
 	webs = collect_web(file_name)
-	countries = collect_country("../code info/country_code.csv")
 
+	# countries = collect_country("../code info/country_code.csv")
+	countries = collect_country()
+
+	### Login similarweb ###
 	s = login()
-	print "There are " + str(len(webs)) + " websites needs to crawl."
+	print "There are " + str(len(webs)) + " websites need to crawl."
 	
 	headers = {
 		"referer":"https://pro.similarweb.com/",
@@ -62,7 +69,8 @@ def similarweb_crawler(file_name):
 		"authority":"pro.similarweb.com",
 		"method":"GET",
 		"path":"/api/startup",
-		"scheme":"https"
+		"scheme":"https",
+			"cookie":".SGTOKEN.SIMILARWEB.COM=gLj2mN7Kr0sHZ8HgWsk5X0z2Z6NwxYUlHJGt8ohNCspjbXncTnGWdoEs1FqTq1T2WvkIi0hygLlk18TmXoL5az3x3wbIogo21ZRQECWoqWhRjRfmsi0vMVF7y0HMTyFlw4YX2YUwKNjTnb7MJ18JTsQBX2pPHzoSbKDs250H8GbkIWhuhitTEBfmvVHFbRjfm8OqbNMjTtw09xoOCPNow6wy9FBqUgx6Cux5_HFIeUSAKYoPo5NAAp19y28ctvMufvHmRueulXiRaJWusceWng2;"
 	}
 	
 	# category traffic data
@@ -87,24 +95,51 @@ def similarweb_crawler(file_name):
 		
 	date_to = str(date_to.year) + "|" + str(date_to.month).zfill(2) + "|" + str(date_to.day).zfill(2)
 	date_from = str(date_from.year) + "|" + str(date_from.month).zfill(2) + "|" + str(date_from.day).zfill(2)
-	
 
+
+	
 	for web in webs:
 		print web
 
-		# WEB info
+		# test if the url is .tw or no
+		while True:
+			try:
+				res = requests.get("http://" + web, timeout = 30)
+				redirection = res.url			
+				break
+
+			# except requests.exceptions.ConnectionError:
+			# 	res.url = ""
+			# 	break
+			# except requests.exceptions.ReadTimeout:
+			# 	res.url = ""
+			# 	break
+			# except:
+			# 	res.url = ""
+			# 	break
+			except:
+				redirection = ""
+				break
+			
+
+		if ".tw" not in redirection:
+			continue
+
+
+
+		### WEB info ###
 		url = "https://pro.similarweb.com/api/websiteanalysis/getheader?includeCrossData=true&keys=" + web + "&mainDomainOnly=true"
+		#print url
 		try:
 			res = s.get(url, headers = headers)
 		except:
 			continue
+		# print res.text.encode("utf-8")
 		
 		try:
 			js = json.loads(res.text)[web]
 		except:
 			continue
-
-		# websites info
 		highestTrafficCountry = js["highestTrafficCountry"]
 
 		if highestTrafficCountry == 0:
@@ -115,7 +150,7 @@ def similarweb_crawler(file_name):
 
 		tags = ""
 		for i in js["tags"]:
-			tags = tags + i.encode("utf-8", "ignore") + "\n"
+			tags = tags + i.encode("big5", "ignore") + "\n"
 		
 		mainDomainName = js["mainDomainName"]
 		tags = tags.strip()
@@ -128,10 +163,20 @@ def similarweb_crawler(file_name):
 		data_info.append([web, mainDomainName, tags, globalRanking, category, categoryRanking, highestTrafficCountry, highestTrafficCountryRanking])
 
 		
-		# Geography statistics
+		### Geography statistics ###
+		# Parameter for url
+		# country:999
+		# from:urllib.quote(date_from)
+		# includeSubDomains:true
+		# isWindow:false
+		# keys:web
+		# metric:GeographyExtended
+		# orderBy:TotalShare desc
+		# timeGranularity:Monthly
+		# to:urllib.quote(date_to)
 		url = "https://pro.similarweb.com/widgetApi/WebsiteGeographyExtended/GeographyExtended/Table?country=999&from=" + urllib.quote(date_from) + "&includeSubDomains=true&isWindow=false&keys=" + web + "&metric=GeographyExtended&orderBy=TotalShare+desc&timeGranularity=Monthly&to=" + urllib.quote(date_to)
-		res = s.get(url, headers = headers)
 
+		res = s.get(url, headers = headers)
 		ratio_ranking = 1
 
 		try:
@@ -148,16 +193,17 @@ def similarweb_crawler(file_name):
 			Rank = i["Rank"] # country ranking
 			data_category.append([web, ratio_ranking, country_code, countries[str(country_code)], ratio, AvgVisitDuration, PagePerVisit, BounceRate, Rank])
 			ratio_ranking += 1
-				
+			
 		print web + " is DONE!"
 		time.sleep(3)
 	
+	### save files ###
 	file_name = file_name[(file_name.rfind("/")+1):-4]
-	with open(file_name + "_WEB Geography Traffice.csv", "wb") as f:
+	with open("../../builtwith/similarweb info/" + file_name + "_WEB Geography Traffice.csv", "wb") as f:
 		w = csv.writer(f)
 		w.writerows(data_category)
-
-	with open(file_name + "_WEB info.csv", "wb") as f:
+	
+	with open("../../builtwith/similarweb info/" + file_name + "_WEB info.csv", "wb") as f:
 		w = csv.writer(f)
 		w.writerows(data_info)
 
@@ -165,4 +211,28 @@ def similarweb_crawler(file_name):
 
 
 
+def main():
 
+	# file_name = input("輸入要抓取的檔名:".decode("utf-8").encode("big5"))
+	files = os.listdir("../../builtwith/raw data/")
+
+	if files is []:
+		print "There's no files for crawling."
+
+	for file_name in files:
+		if ".csv" not in file_name:
+			continue
+
+		print file_name
+		similarweb_crawler("../../builtwith/raw data/" + file_name)
+	
+		# move file to done directory
+		# os.rename("../../builtwith/raw data/" + file_name, "../../builtwith/raw data/done/" + file_name)
+
+
+
+
+
+if __name__ == "__main__":
+
+	main()
