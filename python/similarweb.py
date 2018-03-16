@@ -55,22 +55,19 @@ def similarweb_crawler(file_name):
 	'''
 
 	webs = collect_web(file_name)
-
-	# countries = collect_country("../code info/country_code.csv")
 	countries = collect_country()
 
 	### Login similarweb ###
 	s = login()
+
 	print "There are " + str(len(webs)) + " websites need to crawl."
 	
 	headers = {
-		"referer":"https://pro.similarweb.com/",
-		"user-agent":"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36",
 		"authority":"pro.similarweb.com",
 		"method":"GET",
-		"path":"/api/startup",
-		"scheme":"https",
-			"cookie":".SGTOKEN.SIMILARWEB.COM=gLj2mN7Kr0sHZ8HgWsk5X0z2Z6NwxYUlHJGt8ohNCspjbXncTnGWdoEs1FqTq1T2WvkIi0hygLlk18TmXoL5az3x3wbIogo21ZRQECWoqWhRjRfmsi0vMVF7y0HMTyFlw4YX2YUwKNjTnb7MJ18JTsQBX2pPHzoSbKDs250H8GbkIWhuhitTEBfmvVHFbRjfm8OqbNMjTtw09xoOCPNow6wy9FBqUgx6Cux5_HFIeUSAKYoPo5NAAp19y28ctvMufvHmRueulXiRaJWusceWng2;"
+		"accept-language":"zh-TW,zh;q=0.8,en-US;q=0.6,en;q=0.4",
+		"cookie":".SGTOKEN.SIMILARWEB.COM=9L7ZjwfqQICbycBCx9ph-KLQz9e1_7NZvMYo3R2ZgDO2eeSB0vdtQckbz0EF-gceQV__HcU_WGEVeloxHCBY-WzrYlNT1gxam1pwOu02izQFzgv8p55k-1vBMUH2z6gYuCxLawl0Df47ukUOxHm66g254U_Zdl8VOwzP649tan7KP9NJo3SS9nMiBmAnP9q5zIoQsBxP_qpOclkAe-7Ys_r5nMQ20grk3CYeSBzjXzBSh-GlqtbstKWIIR9zYo24PgMuIWS1jb5u1I4XzX-STFYko0xvPo50oeCxLK4YAiMq04jkUDHviijsfZQ6pLQA",
+		"user-agent":"Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36"
 	}
 	
 	# category traffic data
@@ -104,19 +101,10 @@ def similarweb_crawler(file_name):
 		# test if the url is .tw or no
 		while True:
 			try:
-				res = requests.get("http://" + web, timeout = 30)
-				redirection = res.url			
+				res = s.get("http://" + web, timeout = 30)
+				redirection = res.url	
 				break
 
-			# except requests.exceptions.ConnectionError:
-			# 	res.url = ""
-			# 	break
-			# except requests.exceptions.ReadTimeout:
-			# 	res.url = ""
-			# 	break
-			# except:
-			# 	res.url = ""
-			# 	break
 			except:
 				redirection = ""
 				break
@@ -125,17 +113,19 @@ def similarweb_crawler(file_name):
 		if ".tw" not in redirection:
 			continue
 
+		# soup = BeautifulSoup(res.text, "lxml")
+		# soup.select(".title")[0]
 
 
 		### WEB info ###
 		url = "https://pro.similarweb.com/api/websiteanalysis/getheader?includeCrossData=true&keys=" + web + "&mainDomainOnly=true"
-		#print url
+		# print url
 		try:
 			res = s.get(url, headers = headers)
+
 		except:
 			continue
-		# print res.text.encode("utf-8")
-		
+
 		try:
 			js = json.loads(res.text)[web]
 		except:
@@ -158,7 +148,7 @@ def similarweb_crawler(file_name):
 		category = js["category"]
 		categoryRanking = js["categoryRanking"]
 		highestTrafficCountry = js["highestTrafficCountry"]
-		highestTrafficCountryRanking = js["highestTrafficCountry"]
+		highestTrafficCountryRanking = js["highestTrafficCountryRanking"]
 		
 		data_info.append([web, mainDomainName, tags, globalRanking, category, categoryRanking, highestTrafficCountry, highestTrafficCountryRanking])
 
@@ -175,7 +165,6 @@ def similarweb_crawler(file_name):
 		# timeGranularity:Monthly
 		# to:urllib.quote(date_to)
 		url = "https://pro.similarweb.com/widgetApi/WebsiteGeographyExtended/GeographyExtended/Table?country=999&from=" + urllib.quote(date_from) + "&includeSubDomains=true&isWindow=false&keys=" + web + "&metric=GeographyExtended&orderBy=TotalShare+desc&timeGranularity=Monthly&to=" + urllib.quote(date_to)
-
 		res = s.get(url, headers = headers)
 		ratio_ranking = 1
 
@@ -213,8 +202,8 @@ def similarweb_crawler(file_name):
 
 def main():
 
-	# file_name = input("輸入要抓取的檔名:".decode("utf-8").encode("big5"))
-	files = os.listdir("../../builtwith/raw data/")
+	
+	files = os.listdir("domain_files/")
 
 	if files is []:
 		print "There's no files for crawling."
@@ -224,11 +213,9 @@ def main():
 			continue
 
 		print file_name
-		similarweb_crawler("../../builtwith/raw data/" + file_name)
+		similarweb_crawler("domain_files/" + file_name)
 	
-		# move file to done directory
-		# os.rename("../../builtwith/raw data/" + file_name, "../../builtwith/raw data/done/" + file_name)
-
+		
 
 
 
