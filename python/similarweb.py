@@ -188,11 +188,11 @@ def similarweb_crawler(file_name):
 	
 	### save files ###
 	file_name = file_name[(file_name.rfind("/")+1):-4]
-	with open("../../builtwith/similarweb info/" + file_name + "_WEB Geography Traffice.csv", "wb") as f:
+	with open(file_name + "_WEB Geography Traffice.csv", "wb") as f:
 		w = csv.writer(f)
 		w.writerows(data_category)
 	
-	with open("../../builtwith/similarweb info/" + file_name + "_WEB info.csv", "wb") as f:
+	with open(file_name + "_WEB info.csv", "wb") as f:
 		w = csv.writer(f)
 		w.writerows(data_info)
 
